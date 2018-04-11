@@ -8,11 +8,11 @@ SOD (system of differentiator) of image audit system.
 3. save to approve list
 4. return to approve list
 
-# /image-uploadings/{iuid}/approvals
+# /images/{id}/approvals
 ## get: 获取审批列表
 1. 200 and get
 
-# /image-uploadings/{iuid}/approvals/{type}
+# /images/{id}/approvals/{type}
 ## post: 审批
 1. 201 and save general approval, return group url
 1. 201 and save group approval, return general url

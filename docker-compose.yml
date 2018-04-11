@@ -8,20 +8,33 @@ services:
       - "8082"
     links:
       - sor
-#      - db
+      - db2
     environment:
       SOR_HOST: sor
       SOR_PORT: 8081
+      DB_HOST: db2
+      DB_PORT: 3307
+      DB_USER: mysql
+      DB_PASS: mysql
+      DB_DATABASE: imagesod
 
-  db:
+  db2:
+    image: tutum/mysql
+    restart: always
+    environment:
+      MYSQL_USER: mysql
+      MYSQL_PASS: mysql
+      ON_CREATE_DB: imagesod
+    expose:
+      - "3307"
+
+  db1:
     image: tutum/mysql
     restart: always
     environment:
       MYSQL_USER: mysql
       MYSQL_PASS: mysql
       ON_CREATE_DB: imagesor
-    ports:
-      - "3306:3306"
     expose:
         - "3306"
 
@@ -32,9 +45,9 @@ services:
     expose:
       - "8081"
     links:
-      - db
+      - db1
     environment:
-      DB_HOST: db
+      DB_HOST: db1
       DB_PORT: 3306
       DB_USERNAME: mysql
       DB_PASSWORD: mysql

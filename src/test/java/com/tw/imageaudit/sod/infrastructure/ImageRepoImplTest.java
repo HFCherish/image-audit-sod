@@ -39,7 +39,7 @@ public class ImageRepoImplTest {
     ImageRepo imageRepo;
 
     @Test
-    public void should_able_to_post_image_to_sor() {
+    public void should_able_to_post_image_to_sor() throws Exception {
         String save = imageRepo.save(new Image("testdata", "testname"));
         assertThat(save, matchesPattern("^/images/.*$"));
     }

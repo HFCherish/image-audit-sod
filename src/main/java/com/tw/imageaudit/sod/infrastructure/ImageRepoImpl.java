@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author hf_cherish
@@ -22,13 +24,20 @@ public class ImageRepoImpl implements ImageRepo {
     private RestTemplate restTemplate;
 
     @Override
-    public String save(Image image) {
+    public String save(Image image) throws Exception {
         HttpHeaders headers = new HttpHeaders();
         headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
         URI uri = restTemplate.postForLocation(SorConf.sorUrl("/images"),
                 new HttpEntity<>(image, headers));
-        return uri.toString();
+
+        String location = uri.toString();
+        Pattern pattern = Pattern.compile("^/images/(.*)$");
+        Matcher matcher = pattern.matcher(location);
+        while (matcher.find()) {
+            return matcher.group(1);
+        }
+        throw new Exception("upload fail");
     }
 }
