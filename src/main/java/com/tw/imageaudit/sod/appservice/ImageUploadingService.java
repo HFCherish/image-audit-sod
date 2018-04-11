@@ -1,9 +1,6 @@
 package com.tw.imageaudit.sod.appservice;
 
-import com.tw.imageaudit.sod.domain.Approval;
-import com.tw.imageaudit.sod.domain.ApprovalRepo;
-import com.tw.imageaudit.sod.domain.ImageRepo;
-import com.tw.imageaudit.sod.domain.ImageUploading;
+import com.tw.imageaudit.sod.domain.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,8 +19,11 @@ public class ImageUploadingService {
     public String upload(ImageUploading imageUploading) throws Exception {
         String imageId = imageRepo.save(imageUploading.getImage());
 
-        Approval approval = new Approval(imageId);
-        approvalRepo.save(approval);
+        approvalRepo.save(new Approval(imageId, ApprovalType.GENERAL));
+
+        if (imageUploading.hasGroup()) {
+            approvalRepo.save(new Approval(imageId, ApprovalType.GROUP));
+        }
         return imageId;
     }
 }

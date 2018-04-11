@@ -21,6 +21,7 @@ public class Approval {
     @Column(name = "imageid")
     private String imageId;
     private ApprovalStatus status;
+    private ApprovalType type;
 
     @Column(name = "create_at")
     private long createAt;
@@ -33,12 +34,12 @@ public class Approval {
         return id;
     }
 
-    public Approval(String imageId) {
+    public Approval(String imageId, ApprovalType approvalType) {
         this.id = IdGenerator.next();
-
         this.imageId = imageId;
         this.status = ApprovalStatus.NONE;
         this.createAt = Instant.now().toEpochMilli();
         this.updateAt = Instant.now().toEpochMilli();
+        this.type = approvalType;
     }
 }

@@ -32,4 +32,8 @@ public class ImageUploading implements Serializable {
     public Group getGroup() {
         return group;
     }
+
+    public boolean hasGroup() {
+        return group != null;
+    }
 }
