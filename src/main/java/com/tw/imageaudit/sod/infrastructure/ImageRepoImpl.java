@@ -1,5 +1,6 @@
 package com.tw.imageaudit.sod.infrastructure;
 
+import com.tw.imageaudit.sod.conf.SorConf;
 import com.tw.imageaudit.sod.domain.Image;
 import com.tw.imageaudit.sod.domain.ImageRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,7 +27,7 @@ public class ImageRepoImpl implements ImageRepo {
         headers.add(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE);
         headers.add(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE);
 
-        URI uri = restTemplate.postForLocation("http://localhost:8081/images",
+        URI uri = restTemplate.postForLocation(SorConf.sorUrl("/images"),
                 new HttpEntity<>(image, headers));
         return uri.toString();
     }
