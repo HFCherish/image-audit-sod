@@ -4,8 +4,7 @@ SOD (system of differentiator) of image audit system.
 
 # /image-uploadings
 ## post: 上传图片
-1. 201 and save image-uploading
-2. save images to sor
+1. 201 and save images to sor
 3. save to approve list
 4. return to approve list
 
