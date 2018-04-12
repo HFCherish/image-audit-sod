@@ -6,4 +6,6 @@ package com.tw.imageaudit.sod.domain;
  */
 public interface ImageRepo {
     String save(Image image) throws Exception;
+
+    void approve(String imageId);
 }

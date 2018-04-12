@@ -40,4 +40,11 @@ public class ImageRepoImpl implements ImageRepo {
         }
         throw new Exception("upload fail");
     }
+
+    @Override
+    public void approve(String imageId) {
+//        todo /images/id/approval
+
+        System.out.println("approve image");
+    }
 }

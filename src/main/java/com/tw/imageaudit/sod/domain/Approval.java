@@ -34,6 +34,10 @@ public class Approval {
         return id;
     }
 
+    public ApprovalStatus getStatus() {
+        return status;
+    }
+
     public Approval(String imageId, ApprovalType approvalType) {
         this.id = IdGenerator.next();
         this.imageId = imageId;
@@ -41,5 +45,14 @@ public class Approval {
         this.createAt = Instant.now().toEpochMilli();
         this.updateAt = Instant.now().toEpochMilli();
         this.type = approvalType;
+    }
+
+    public Approval updateStatus(ApprovalStatus status) {
+        if (!this.status.equals(ApprovalStatus.NONE)) {
+            throw new RuntimeException("conflict! already audited. status is: " + this.status);
+        }
+
+        this.status = status;
+        return this;
     }
 }

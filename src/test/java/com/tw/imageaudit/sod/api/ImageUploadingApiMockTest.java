@@ -1,13 +1,15 @@
 package com.tw.imageaudit.sod.api;
 
-import com.tw.imageaudit.sod.domain.Group;
-import com.tw.imageaudit.sod.domain.Image;
-import com.tw.imageaudit.sod.domain.ImageRepo;
-import com.tw.imageaudit.sod.domain.ImageUploading;
+import com.alibaba.fastjson.JSONObject;
+import com.tw.imageaudit.sod.domain.*;
 import com.tw.imageaudit.sod.domain.util.IdGenerator;
 import io.restassured.http.ContentType;
+import io.restassured.response.ValidatableResponse;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
+
+import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -23,39 +25,79 @@ public class ImageUploadingApiMockTest extends ApiTest {
     @MockBean
     ImageRepo imageRepo;
 
+    @Autowired
+    ApprovalRepo approvalRepo;
+
     @Test
     public void should_upload_right() throws Exception {
         String imageId = IdGenerator.next();
         when(imageRepo.save(any(Image.class))).thenReturn(imageId);
-        given()
+        uploadImage(generalImageUploading())
+                .body("links.image", is(imageId))
+                .body("links.approving.size", is(1));
+
+        approvalRepo.deleteByImageId(imageId);
+    }
+
+    private ValidatableResponse uploadImage(ImageUploading uploading) {
+        return given()
                 .contentType(ContentType.JSON)
-                .body(new ImageUploading(new Image("imagedata from sod", "imagename from sod")))
+                .body(uploading)
 
                 .when()
                 .post("/image-uploading")
 
                 .then()
                 .statusCode(201)
-                .header("Location", matchesPattern("^/images/.*$"))
-                .body("links.image", is(imageId))
-                .body("links.approving.size", is(1));
+                .header("Location", matchesPattern("^/images/.*$"));
+    }
+
+    private ImageUploading generalImageUploading() {
+        return new ImageUploading(new Image("imagedata from sod", "imagename from sod"));
     }
 
     @Test
     public void should_upload_right_with_group() throws Exception {
         String imageId = IdGenerator.next();
         when(imageRepo.save(any(Image.class))).thenReturn(imageId);
-        given()
-                .contentType(ContentType.JSON)
-                .body(new ImageUploading(new Image("imagedata from sod", "imagename from sod")).setGroup(new Group("groupname")))
-
-                .when()
-                .post("/image-uploading")
-
-                .then()
-                .statusCode(201)
-                .header("Location", matchesPattern("^/images/.*$"))
+        uploadImage(groupUploading())
                 .body("links.image", is(imageId))
                 .body("links.approving.size", is(2));
+
+        approvalRepo.deleteByImageId(imageId);
+    }
+
+    private ImageUploading groupUploading() {
+        return new ImageUploading(new Image("imagedata from sod", "imagename from sod")).setGroup(new Group("groupname"));
+    }
+
+    @Test
+    public void should_general_approve() throws Exception {
+        String imageId = IdGenerator.next();
+        when(imageRepo.save(any(Image.class))).thenReturn(imageId);
+        JSONObject uploadBody = uploadImage(generalImageUploading())
+                .body("links.approving.size", is(1))
+
+                .extract()
+                .body()
+                .as(JSONObject.class);
+
+        String approvingId = uploadBody.getJSONObject("links").getJSONArray("approving").getString(0);
+
+        given()
+                .contentType(ContentType.JSON)
+                .body(new HashMap() {{
+                    put("status", ApprovalStatus.APPROVE.name());
+                }})
+
+                .when()
+                .patch("/images/" + imageId + "/approvals/" + approvingId)
+
+                .then()
+                .statusCode(200)
+                .body("links.image", is(imageId))
+                .body("links.approving.size", is(0));
+
+        approvalRepo.deleteByImageId(imageId);
     }
 }

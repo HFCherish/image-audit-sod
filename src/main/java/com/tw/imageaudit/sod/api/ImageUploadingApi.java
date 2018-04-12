@@ -1,6 +1,7 @@
 package com.tw.imageaudit.sod.api;
 
 import com.alibaba.fastjson.JSONObject;
+import com.tw.imageaudit.sod.appservice.ApprovalService;
 import com.tw.imageaudit.sod.appservice.ImageUploadingService;
 import com.tw.imageaudit.sod.domain.Approval;
 import com.tw.imageaudit.sod.domain.ApprovalRepo;
@@ -8,9 +9,7 @@ import com.tw.imageaudit.sod.domain.ApprovalStatus;
 import com.tw.imageaudit.sod.domain.ImageUploading;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
@@ -26,6 +25,9 @@ public class ImageUploadingApi {
     ImageUploadingService imageUploadingService;
 
     @Autowired
+    ApprovalService approvalService;
+
+    @Autowired
     Routes routes;
 
     @Autowired
@@ -34,13 +36,26 @@ public class ImageUploadingApi {
     @PostMapping("/image-uploading")
     public ResponseEntity<JSONObject> upload(@RequestBody ImageUploading imageUploading) throws Exception {
         String imageId = imageUploadingService.upload(imageUploading);
-        List<Approval> approvals = approvalRepo.findByImageIdAndStatus(imageId, ApprovalStatus.NONE);
+        List<Approval> approvals = approvalService.getToApprovals(imageId);
 
         return ResponseEntity.created(URI.create(routes.imageUrl(imageId))).body(
                 new JSONObject().fluentPut("links",
                         new JSONObject().fluentPut("image", imageId)
-                                        .fluentPut("approving", approvals.stream().map(a -> a.getId()).collect(Collectors.toList()))
-//                                        .fluentPut("approving", approvals.stream().map(a -> routes.approvalUrl(imageId, a.getId())).collect(Collectors.toList()))
+                                .fluentPut("approving", approvals.stream().map(a -> a.getId()).collect(Collectors.toList()))
+                )
+        );
+    }
+
+    @PatchMapping("/images/{imageId}/approvals/{approvalId}")
+    public ResponseEntity<JSONObject> approve(@RequestBody JSONObject body,
+                                              @PathVariable String imageId,
+                                              @PathVariable String approvalId) {
+        approvalService.approve(imageId, approvalId, ApprovalStatus.valueOf(body.getString("status").toUpperCase()));
+
+        List<Approval> toApprovals = approvalService.getToApprovals(imageId);
+        return ResponseEntity.ok(new JSONObject().fluentPut("links",
+                new JSONObject().fluentPut("image", imageId)
+                        .fluentPut("approving", toApprovals.stream().map(a -> a.getId()).collect(Collectors.toList()))
                 )
         );
     }
