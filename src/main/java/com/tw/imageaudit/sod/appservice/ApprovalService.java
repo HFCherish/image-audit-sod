@@ -7,7 +7,6 @@ import com.tw.imageaudit.sod.domain.ImageRepo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.persistence.EntityNotFoundException;
 import java.util.List;
 
 /**
@@ -23,10 +22,14 @@ public class ApprovalService {
     ImageRepo imageRepo;
 
     public void approve(String imageId, String approvalId, ApprovalStatus status) {
-        Approval originalApproval = approvalRepo.findByIdAndImageId(approvalId, imageId).orElseThrow(() -> new EntityNotFoundException());
+        List<Approval> toApprovals = getToApprovals(imageId);
+
+
+        Approval originalApproval = toApprovals.stream().filter(a -> a.getId().equals(approvalId)).findFirst().orElseThrow(() -> new RuntimeException("approval not exists or already audited"));
 
         Approval approval = originalApproval.updateStatus(status);
-        if (approval.getStatus().equals(ApprovalStatus.APPROVE)) {
+
+        if (toApprovals.size() == 1) {
             imageRepo.approve(imageId);
         }
 
