@@ -1,9 +1,22 @@
 version: '3.1'
 services:
-  web:
-    build: .
+  nginx:
+    image: nginx:1.13.12
     ports:
-     - "8082:8082"
+      - "8080:80"
+    restart: always
+    links:
+      - sod
+      - sor
+    volumes:
+      - ./conf.d:/etc/nginx/conf.d
+#      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./log:/var/log/nginx
+
+  sod:
+    image: sod_web
+    expose:
+      - "8082"
     links:
       - sor
       - sod_db
@@ -38,8 +51,8 @@ services:
 
   sor:
     image: sor_web
-    ports:
-      - "8081:8081"
+    expose:
+      - "8081"
     links:
       - sor_db
     environment:
